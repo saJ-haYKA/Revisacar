@@ -1,11 +1,89 @@
 .Checklist{
+   max-width: 50%;
+    width: 100%;
     background-color: #252523;
     padding: 30px 30px;
     display: grid;
     border-radius: 25px;
-     border: 2px solid rgba(255,255,255,0.08);
- 
-
-    max-width: 100%;
-    
+    border: 2px solid rgba(255,255,255,0.08);
+    margin: 70px auto;
+    margin-bottom: 30px;
+    justify-items: center;
+      grid-template-columns: 1fr;
+        gap: 20px;
+        
 }
+.Checklist input{
+  width: 100%;
+}
+.cli{
+   
+  grid-template-areas:
+     "Tittle"
+    "name"
+    "telefone"
+    "cpf"
+    "email";
+  
+   
+}
+.vei{
+  grid-template-areas:
+     "Tittle"
+    "modelo"
+    "placa "
+    "ano"
+    "cor"
+    "km";
+}
+.tittle{
+grid-area: Tittle;
+}
+.nome-input {
+  grid-area: name; 
+width: 100%;
+}
+
+.telefone-input {
+  grid-area: telefone;
+  width: 100%;
+
+}
+
+.cpf-input {
+  grid-area: cpf;
+  width: 100%;
+}
+
+.email-input {
+  grid-area: email;
+  width: 100%;
+     }
+  
+     .modelo-input {
+  grid-area: modelo; 
+width: 100%;
+}
+
+.placa-input {
+  grid-area: placa;
+  width: 100%;
+
+}
+
+.ano-input {
+  grid-area: ano;
+  width: 100%;
+}
+
+.cor-input {
+  grid-area: cor;
+  width: 100%;
+     }
+ .KM-input {
+  grid-area: km;
+  width: 100%;
+     }
+  
+  
+

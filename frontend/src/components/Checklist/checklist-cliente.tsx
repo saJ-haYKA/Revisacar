@@ -1,5 +1,4 @@
 import './check-list.css'
-import './checkCli.css'
 import { Input } from '../inputs/input';
 import { useState } from "react";
 //import Button from '../../components/button/button';
@@ -12,8 +11,9 @@ const [cpf, setCpf] = useState("");
 const [email, setEmail] = useState("");
     return(
         
-        <div className='Checklist'>
+        <div className='Checklist cli'>
             
+            <h1 className='tittle-cli'>👤Dados do cliente</h1>
            <div className="nome-input"> <Input 
                 label='Nome completo'
                 name='nome'

@@ -1,11 +1,18 @@
 import './button.css'
 
 type ButtonProps = {
-  texto: string;
+  text: string;
+  background: string;
+  onClick?: () => void;
+
+
 };
 
-export default function Button({ texto }: ButtonProps) {
+export default function Button({ text, background, onClick  }: ButtonProps) {
+
+
+    
   return (
-    <button className='.btn'>{texto}</button>
+    <button style={{ background }}  onClick={onClick} className='btn'>{text}</button>
   );
 }

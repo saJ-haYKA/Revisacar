@@ -87,7 +87,23 @@ h1{
 }
 
 .panel-sub {
+  max-width: 50%;
   font-size: 13px;
-  color: #b0aea6;
+  color: #b0aea6; 
   line-height: 1.6;
+  margin: auto;
+}
+
+hr{
+ color:  rgba(255, 255, 255, 0.199);
+}
+.panel-sub-footer{
+  display: flex;
+  margin-top: 30px;
+   justify-content: space-between;
+}
+
+.nextbtn button{
+ 
+  color: #1e1e1c;
 }
