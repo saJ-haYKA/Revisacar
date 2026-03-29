@@ -1,6 +1,7 @@
 .Checklist{
-   max-width: 50%;
+   max-width: 75%;
     width: 100%;
+     color: #b3b2b2ec;
     background-color: #252523;
     padding: 30px 30px;
     display: grid;
@@ -13,9 +14,21 @@
         gap: 20px;
         
 }
-.Checklist input{
+.Checklist > div {
   width: 100%;
+  
 }
+h3{
+  padding: 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+.inspeçao{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .cli{
    
   grid-template-areas:
@@ -36,54 +49,68 @@
     "cor"
     "km";
 }
+.relato{
+  
+   grid-template-areas:
+     "Tittle"
+    "relato";
+}
+.diagnostico{
+  margin: auto;
+  
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: 10px;
+}
 .tittle{
 grid-area: Tittle;
 }
+
 .nome-input {
   grid-area: name; 
-width: 100%;
+  
 }
 
 .telefone-input {
   grid-area: telefone;
-  width: 100%;
 
 }
 
 .cpf-input {
   grid-area: cpf;
-  width: 100%;
 }
 
 .email-input {
   grid-area: email;
-  width: 100%;
      }
   
      .modelo-input {
   grid-area: modelo; 
-width: 100%;
 }
 
 .placa-input {
   grid-area: placa;
-  width: 100%;
 
 }
 
 .ano-input {
   grid-area: ano;
-  width: 100%;
 }
 
 .cor-input {
   grid-area: cor;
-  width: 100%;
      }
  .KM-input {
   grid-area: km;
-  width: 100%;
      }
   
+     .relato-area{
+      grid-area: relato;
+     }
+   
+
+
   
 

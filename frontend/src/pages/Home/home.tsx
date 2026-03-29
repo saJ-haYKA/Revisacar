@@ -8,13 +8,15 @@ import Panellist from '../../components/panel-list/panel';
 import ClienteCheck from '../../components/Checklist/checklist-cliente';
 import { useState } from "react";
 import VeiculoCheck from '../../components/Checklist/checklist-veiculo';
+import DiagnosticoCheck from '../../components/Checklist/checklist-diagnostico';
 
 export default function Home() {
   const [step, setStep] = useState(0);
 
   const Clist = [
     <ClienteCheck />,
-    <VeiculoCheck />
+    <VeiculoCheck />,
+    <DiagnosticoCheck />
   ];
 
   function nextStep() {

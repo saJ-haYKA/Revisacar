@@ -7,9 +7,10 @@
       letter-Spacing: "0.6px";
       margin-Bottom: "8px";
     }
-    input {
-      width: 80%;
-      background:#181717;
+  
+    input, textarea{
+      width: 100%;
+      background:#18171788;
       border: 1px solid #9e9e9eb6;
       border-Radius: 10px;
       padding: 12px 14px;
@@ -19,3 +20,9 @@
       box-Sizing: border-box;
       transition: border color 0.2s;
     }
+  
+    textarea{
+      resize: vertical;
+    }
+
+
