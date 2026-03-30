@@ -9,14 +9,15 @@ import ClienteCheck from '../../components/Checklist/checklist-cliente';
 import { useState } from "react";
 import VeiculoCheck from '../../components/Checklist/checklist-veiculo';
 import DiagnosticoCheck from '../../components/Checklist/checklist-diagnostico';
-
+import FotoCheck  from '../../components/Checklist/checklist-foto';
 export default function Home() {
   const [step, setStep] = useState(0);
 
   const Clist = [
     <ClienteCheck />,
     <VeiculoCheck />,
-    <DiagnosticoCheck />
+    <DiagnosticoCheck />,
+    <FotoCheck />
   ];
 
   function nextStep() {
@@ -49,7 +50,7 @@ export default function Home() {
         <div className="welcome">
           <div className="panel-title"></div>
           <div className="panel-sub">
-            <div className="ClienteCheck"> <hr />
+            <div> <hr />
           </div>
           <div className="panel-sub-footer"><div onClick={prevStep} className="backbtn"><Button background='' text='← Anterior'/></div> <div onClick={nextStep} className="nextbtn"><Button background='#f1f1f1'  text='Próximo →' /></div></div>
           </div>

@@ -1,6 +1,7 @@
 import './check-list.css'
 import { Input } from '../inputs/input';
 import { useState } from "react";
+import '../../index.css'
 //import Button from '../../components/button/button';
 
 

@@ -1,5 +1,5 @@
 import './check-list.css'
-
+import '../../index.css'
 import { Input } from '../inputs/input';
 import { useState } from "react";
 //import Button from '../../components/button/button';

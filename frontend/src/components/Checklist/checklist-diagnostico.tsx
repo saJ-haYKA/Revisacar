@@ -2,6 +2,7 @@ import './check-list.css'
 import { useState } from "react";
 import { Textarea } from '../inputs/textarea';
 import { RadioBox } from '../radio/diagnosticoRadio';
+import '../../index.css'
 
 export default function DiagnosticoCheck(){
 
