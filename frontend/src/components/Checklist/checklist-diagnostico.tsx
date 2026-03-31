@@ -7,7 +7,7 @@ import '../../index.css'
 export default function DiagnosticoCheck(){
 
   const [relato, setRelato] = useState("");
-
+  const [obs, setObs] = useState("");
   const [status, setStatus] = useState<{ [key: string]: string }>({});
 
   function handleChange(key: string, value: string) {
@@ -141,10 +141,10 @@ export default function DiagnosticoCheck(){
           <Textarea 
             label='Problemas adicionais encontrados ou anotações técnicas?'
             rows={5}
-            name='relato'
+            name='obs'
             placeholder='Descreva aqui qualquer problema adicional encontrado durante a inspeção, informações técnicas relevantes, etc.'
-            value={relato}
-            onChangeValue={setRelato}
+            value={obs}
+            onChangeValue={setObs}
           />
         </div>
       </div>
