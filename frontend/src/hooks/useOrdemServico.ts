@@ -1,0 +1,285 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { SECTIONS } from '../constants';
+import {
+  nowDate, nowTime, randomOsNum,
+  initChecklist,
+  validateStep1, validateStep5,
+  getChecklistStats, getCritItems,
+} from '../utils';
+import { api } from '../utils/api';
+import type {
+  OSHeader, Cliente, Veiculo, Tecnico, Photo,
+  SaveStatus, ValidationErrors,
+} from '../types';
+
+// ── Initial state ──────────────────────────────────────────────────────────
+
+const INITIAL_OS_HEADER = (): OSHeader => ({
+  os_num:  randomOsNum(),
+  os_date: nowDate(),
+  os_time: nowTime(),
+  os_km:   '',
+});
+
+const INITIAL_CLIENTE: Cliente  = { nome: '', doc: '', tel: '', email: '' };
+const INITIAL_VEICULO: Veiculo  = {
+  placa: '', modelo: '', ano: '', cor: '',
+  combustivel: '', nivel_combustivel: '', chassi: '', obs_entrada: '',
+};
+const INITIAL_TECNICO: Tecnico  = {
+  nome: '', registro: '', data_saida: '', hora_saida: '', km_saida: '', parecer_geral: '',
+};
+
+// ── Hook ────────────────────────────────────────────────────────────────────
+
+export function useOrdemServico() {
+  const [step, setStep]               = useState(1);
+  const [stepDir, setStepDir]         = useState<'forward' | 'back'>('forward');
+  const [orderId, setOrderId]         = useState<string | null>(null);
+  const [savedAt, setSavedAt]         = useState<string | null>(null);
+  const [saveStatus, setSaveStatus]   = useState<SaveStatus>('');
+  const [errors, setErrors]           = useState<ValidationErrors>({});
+  const [showErrors, setShowErrors]   = useState(false);
+
+  const [osHeader, setOsHeader] = useState<OSHeader>(INITIAL_OS_HEADER);
+  const [cliente,  setCliente]  = useState<Cliente>(INITIAL_CLIENTE);
+  const [veiculo,  setVeiculo]  = useState<Veiculo>(INITIAL_VEICULO);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [checklist, setChecklist] = useState(initChecklist);
+  const [photos, setPhotos]       = useState<Photo[]>([]);
+  const [lightbox, setLightbox]   = useState<string | null>(null);
+  const [tecnico, setTecnico]     = useState<Tecnico>(INITIAL_TECNICO);
+
+  // Signature canvas
+  const sigRef     = useRef<HTMLCanvasElement>(null);
+  const sigCtxRef  = useRef<CanvasRenderingContext2D | null>(null);
+  const sigDrawing = useRef(false);
+
+  useEffect(() => {
+    if (step !== 5) return;
+    const canvas = sigRef.current;
+    if (!canvas || (canvas as HTMLCanvasElement & { _init?: boolean })._init) return;
+    (canvas as HTMLCanvasElement & { _init?: boolean })._init = true;
+
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = '#1A1A1A';
+    ctx.lineWidth   = 1.8;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    sigCtxRef.current = ctx;
+  }, [step]);
+
+  // ── Checklist ──────────────────────────────────────────────────────────────
+
+  const setChecklistStatus = useCallback((key: string, val: string) => {
+    setChecklist((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        status: prev[key].status === val ? null : val,
+      },
+    }));
+  }, []);
+
+  const setChecklistObs = useCallback((key: string, val: string) => {
+    setChecklist((prev) => ({ ...prev, [key]: { ...prev[key], obs: val } }));
+  }, []);
+
+  // ── Photos ─────────────────────────────────────────────────────────────────
+
+  const handlePhotos = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    Array.from(e.target.files ?? []).forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (ev) =>
+        setPhotos((prev) => [...prev, { src: (ev.target?.result as string), name: file.name }]);
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  }, []);
+
+  const removePhoto = useCallback((index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // ── Signature ──────────────────────────────────────────────────────────────
+
+  const getSigPos = (e: React.PointerEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const clearSig = useCallback(() => {
+    const canvas = sigRef.current;
+    if (canvas && sigCtxRef.current) {
+      sigCtxRef.current.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }, []);
+
+  const sigHandlers = {
+    onPointerDown: (e: React.PointerEvent<HTMLCanvasElement>) => {
+      sigDrawing.current = true;
+      const p = getSigPos(e, sigRef.current!);
+      sigCtxRef.current?.beginPath();
+      sigCtxRef.current?.moveTo(p.x, p.y);
+      e.preventDefault();
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!sigDrawing.current || !sigCtxRef.current) return;
+      const p = getSigPos(e, sigRef.current!);
+      sigCtxRef.current.lineTo(p.x, p.y);
+      sigCtxRef.current.stroke();
+      e.preventDefault();
+    },
+    onPointerUp:    () => { sigDrawing.current = false; },
+    onPointerLeave: () => { sigDrawing.current = false; },
+  };
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+
+  const goStep = useCallback((n: number, currentStep?: number) => {
+    const from = currentStep ?? step;
+    setStepDir(n > from ? 'forward' : 'back');
+    setStep(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
+  const toggleAllSections = useCallback(() => {
+    setSelected((prev) =>
+      prev.size === SECTIONS.length
+        ? new Set<string>()
+        : new Set(SECTIONS.map((s) => s.id))
+    );
+  }, []);
+
+  const toggleSection = useCallback((sectionId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(sectionId) ? next.delete(sectionId) : next.add(sectionId);
+      return next;
+    });
+  }, []);
+
+  // ── Persistence ────────────────────────────────────────────────────────────
+
+  const buildPayload = useCallback(
+    () => ({
+      os_header: osHeader,
+      cliente,
+      veiculo,
+      servicos_selecionados: Array.from(selected),
+      checklist: Object.fromEntries(
+        Object.entries(checklist).map(([k, v]) => [k, { status: v.status, obs: v.obs }])
+      ),
+      fotos_base64: photos.map((p) => p.src),
+      tecnico,
+      status: 'rascunho',
+    }),
+    [osHeader, cliente, veiculo, selected, checklist, photos, tecnico]
+  );
+
+  const saveOrder = useCallback(async () => {
+    setSaveStatus('saving');
+    try {
+      const payload = buildPayload();
+      const data = orderId
+        ? await api.atualizarOrdem(orderId, payload)
+        : await api.criarOrdem(payload);
+
+      if (!orderId) setOrderId(data.id);
+      setSavedAt(nowTime());
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(''), 2500);
+    } catch (err) {
+      console.error('Erro ao salvar ordem:', err);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  }, [buildPayload, orderId]);
+
+  // ── Step handlers ──────────────────────────────────────────────────────────
+
+  const handleNextStep1 = useCallback(() => {
+    const errs = validateStep1(osHeader, cliente, veiculo);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      setShowErrors(true);
+      return;
+    }
+    setErrors({});
+    setShowErrors(false);
+    goStep(2, 1);
+  }, [osHeader, cliente, veiculo, goStep]);
+
+  const handleExport = useCallback(
+    (onExport: () => void) => {
+      const errs = validateStep5(tecnico);
+      if (Object.keys(errs).length > 0) {
+        setErrors(errs);
+        setShowErrors(true);
+        return;
+      }
+      setErrors({});
+      setShowErrors(false);
+      saveOrder();
+      onExport();
+    },
+    [tecnico, saveOrder]
+  );
+
+  const resetAll = useCallback(() => {
+    if (!window.confirm('Limpar toda a OS e começar do zero?')) return;
+    setOsHeader(INITIAL_OS_HEADER());
+    setCliente(INITIAL_CLIENTE);
+    setVeiculo(INITIAL_VEICULO);
+    setSelected(new Set());
+    setChecklist(initChecklist());
+    setPhotos([]);
+    setTecnico(INITIAL_TECNICO);
+    setOrderId(null);
+    setSavedAt(null);
+    setErrors({});
+    setShowErrors(false);
+    setStep(1);
+    clearSig();
+  }, [clearSig]);
+
+  // ── Derived state ──────────────────────────────────────────────────────────
+
+  const stats     = getChecklistStats(selected, checklist);
+  const critItems = getCritItems(selected, checklist);
+  const hasErr    = (k: string) => showErrors && !!errors[k];
+
+  return {
+    step, stepDir, orderId, savedAt, saveStatus,
+    errors, showErrors, hasErr,
+    osHeader, setOsHeader,
+    cliente, setCliente,
+    veiculo, setVeiculo,
+    selected,
+    checklist,
+    photos, setPhotos,
+    lightbox, setLightbox,
+    tecnico, setTecnico,
+    stats, critItems,
+    sigRef, sigCtxRef, sigHandlers, clearSig,
+    goStep,
+    toggleSection,
+    toggleAllSections,
+    setChecklistStatus,
+    setChecklistObs,
+    handlePhotos,
+    removePhoto,
+    saveOrder,
+    handleNextStep1,
+    handleExport,
+    resetAll,
+    buildPayload,
+  };
+}
